@@ -92,5 +92,111 @@ p2 <- ggplot(outm,aes(Study,Abundance))+
 
 p2
 
+# figure4-d
+library(reshape2)
+library(vegan)
+mcom.bray <- read.csv("./richness_diversity.txt",sep="\t",header=T,check.names = F)
+mcom.bray$group <- as.factor(mcom.bray$group)
+mcom.bray$group <- factor(mcom.bray$group,levels=c("NonIBD","UC","CD"))
+list <- list(c("NonIBD","UC"),c("NonIBD","CD"),c("CD","UC"))
+
+mcom.bray$Study <- factor(mcom.bray$Study,levels = c("NielsenHB_2014","HeQ_2017","Schirmer_2018","JiangS_2022"))
+
+
+list <- list(c("NonIBD","CD"))
+mcom.bray <- mcom.bray[which(mcom.bray$group!="UC"),]
+p2 <- ggplot(mcom.bray,aes(group,value),aes(fill=Study))+
+  geom_boxplot(aes(color=group),width=0.5,outlier.size = 0.1)+
+  facet_grid(variable~Study,scales = "free")+
+  scale_color_manual(values = c("#407a30","#F39C12"))+
+  theme_bw()+
+  ggsignif::geom_signif(stat="signif",test = "wilcox.test",comparisons = list,step_increase = 0.15)+
+  theme(axis.text.x = element_text(angle = 30,hjust = 1,vjust = 1),axis.title.x=element_blank(),panel.grid = element_blank())+
+  scale_y_continuous(expand=expansion(mult=c(0,0.2)))
+p2 
+
+# figure4-e
+auc_inde1 <- read.csv("Independent_validation_AUC.txt",header=T,sep="\t",check.names = F)
+
+lst <- list(
+            c("SinProVirP","MetaPhlAn"),
+            c("SinProVirP","MetaPhlAn+SinProVirP"),
+            c("MetaPhlAn","MetaPhlAn+SinProVirP"))
+pp4 <- ggplot(auc_inde1,aes(Method,AUC))+
+  geom_boxplot(outlier.size = 0.1,aes(color=Method))+
+  facet_grid(.~auc_inde1$Selected_times)+
+   theme_classic()+
+  ggsignif::geom_signif(comparisons = lst,test = "wilcox.test",step_increase = 0.1,map_signif_level = T)+
+  scale_color_manual(values = c("#ea6921","#fbb461","#7fb2d5","#b5d66b","#a251ce"))+xlab("Features selected times in 100 repeats")
+pp4
+
+# figure4-f
+vcp.spp <- c("VC_196_0","VC_1976_3","VC_2477_0","VC_6848_0","VC_42_0","VC_1956_0","VC_1211_0","VC_2017_0","VC_2441_0","VC_1505_0","VC_2024_0","VC_2462_0","VC_1079_0","VC_1940_0","VC_4614_0","VC_6424_0","VC_190_0","VC_2113_0","VC_2637_0","VC_3003_0","VC_3445_0","VC_3935_20","VC_4046_0","VC_4679_0","VC_6842_0","VC_971_0","VC_4267_0","VC_6877_0","VC_2310_40","VC_1662_10")
+
+bacdat <- read.csv("./02.results/06.keep.same.number.feature.RF/heatmap.anno.sinprovirp.txt",sep="\t",header = T,check.names = F)
+bacdat$Category <- factor(bacdat$Category,levels = c("CD","NONE","NonIBD","Siphoviridae","Myoviridae","Microviridae","Podoviridae","Peduoviridae","Unassigned"))
+col <- c("#F39C12","gray80","#417640","#ecaf87","#9bbc59","#F1C40F","gray80","#20B2AA","#FF6347","#92A8D1")
+
+
+ggplot(bacdat,aes(x=x,y=Feature,fill=Category))+
+  geom_tile(color="gray95")+
+  scale_fill_manual(values = col)+
+  scale_x_discrete(expand = expansion(mult = c(0,0)))+
+  scale_y_discrete(expand = expansion(mult = c(0,0)))+
+  theme_bw()+
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.x = element_text(angle = 270,vjust = 0.5,hjust = 0,size=11),
+    axis.text = element_text(color=1,size = 14),
+    axis.title = element_text(size = 14,color=1),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 14),
+    strip.text = element_blank()
+  )
+
+# figure4 g-h
+od  <- read.csv("./02.results/06.keep.same.number.feature.RF/02.selected.features/Final_selected_feature_for_PhantaGenus.filterocc0.05.in.dis.ONLY_TimeCutoff_30",sep="\t",row.names = 1,check.names = F)
+phanta_features  <- as.character(od$Var1)
+
+dat <- read.csv("./02.results/06.keep.same.number.feature.RF/Phanta.phage-host.interaction.headpmap.data.txt",header = T,sep="\t",check.names = F)
+dat$Species2 <- factor(dat$Species2,levels = spoder)
+dat$Species1 <- factor(dat$Species1,levels = rev(phantaspp))
+pp.d <- ggplot(dat,aes(Species2,Species1))+
+  geom_tile(aes(fill=fill))+
+  geom_point(data=dat[dat$`Phage-host` =="host",],shape=18,size=2)+
+ # facet_grid(g~Group,scales = "free",space = "free")+
+  scale_fill_manual(values = c("#93CC92","white","#F9C478"))+
+  scale_x_discrete(expand = expansion(mult = c(0,0)))+
+  scale_y_discrete(expand = expansion(mult = c(0,0)))+
+  theme_bw()+
+  theme(
+    axis.text.x = element_text(angle = 90,vjust = 1,hjust = 1,size=11),
+    axis.text = element_text(color=1,size = 14),
+    axis.title = element_text(size = 14,color=1),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 14),
+    strip.text = element_blank()
+  )
+pp.d
+##validation only
+pp.v <- ggplot(dat,aes(Species2,Species1))+
+  geom_tile(aes(fill=fill_vali))+
+  geom_point(data=dat[dat$`Phage-host` =="host",],shape=18,size=2)+
+ # facet_grid(g~Group,scales = "free",space = "free")+
+  scale_fill_manual(values = c("#93CC92","white","#F9C478"))+
+  scale_x_discrete(expand = expansion(mult = c(0,0)))+
+  scale_y_discrete(expand = expansion(mult = c(0,0)))+
+  theme_bw()+
+  theme(
+    axis.text.x = element_text(angle = 90,vjust = 1,hjust = 1,size=11),
+    axis.text = element_text(color=1,size = 14),
+    axis.title = element_text(size = 14,color=1),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 14),
+    strip.text = element_blank()
+  )
+library(ggpubr)
+ggarrange(pp.d,pp.v,ncol=2,common.legend = T)
 
 
